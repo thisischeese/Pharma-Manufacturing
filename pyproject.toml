@@ -1,0 +1,19 @@
+[project]
+name = "lek-eda"
+version = "0.1.0"
+description = "Lek 정제 생산 데이터 EDA - 수율 저하 시나리오 탐색"
+requires-python = ">=3.12"
+dependencies = [
+    "ipykernel>=7.4.0",
+    "jupyter>=1.1.1",
+    "koreanize-matplotlib>=0.1.1",
+    "matplotlib>=3.11.2",
+    "numpy>=2.5.4",
+    "openpyxl>=3.1.5",
+    "pandas>=3.1.1",
+    "pyarrow>=26.0.1",
+    "scikit-learn>=1.9.1",
+    "scipy>=1.18.1",
+    "seaborn>=0.13.2",
+    "setuptools>=84.2.1",
+]
