@@ -135,7 +135,7 @@ ctx.show_overview()
     return nb
 
 
-if __name__ == "__main__":
+def write_notebooks():
     t = targets()
     for b, r in t.iterrows():
         path = HERE / f"RCA_product{int(r.code)}_batch{b}.ipynb"
@@ -174,8 +174,9 @@ def write_readme():
 
 ```bash
 uv sync                                                       # 저장소 루트에서
-uv run python notebooks/rca_batches/build_notebooks.py        # 노트북·README 다시 만들기
+uv run python notebooks/rca_batches/build_notebooks.py           # 노트북 생성 (실행 결과 없음)
 cd notebooks/rca_batches && uv run jupyter nbconvert --to notebook --execute --inplace RCA_product*.ipynb
+uv run python build_notebooks.py --readme                     # 요약표 갱신
 ```
 
 ## 상세 노트북(배치 790) 대비 바뀐 규칙
@@ -210,5 +211,8 @@ cd notebooks/rca_batches && uv run jupyter nbconvert --to notebook --execute --i
     return S
 
 
-if __name__ == "__main__" and "--readme" in sys.argv:
-    write_readme()
+if __name__ == "__main__":
+    if "--readme" in sys.argv:
+        write_readme()          # 실행된 노트북은 건드리지 않음
+    else:
+        write_notebooks()

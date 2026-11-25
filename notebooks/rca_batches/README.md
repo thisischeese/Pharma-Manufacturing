@@ -7,8 +7,9 @@
 
 ```bash
 uv sync                                                       # 저장소 루트에서
-uv run python notebooks/rca_batches/build_notebooks.py        # 노트북·README 다시 만들기
+uv run python notebooks/rca_batches/build_notebooks.py           # 노트북 생성 (실행 결과 없음)
 cd notebooks/rca_batches && uv run jupyter nbconvert --to notebook --execute --inplace RCA_product*.ipynb
+uv run python build_notebooks.py --readme                     # 요약표 갱신
 ```
 
 ## 상세 노트북(배치 790) 대비 바뀐 규칙
