@@ -1,6 +1,7 @@
-"""제품 17·23의 수율 이상·일탈 배치마다 RCA 노트북을 생성한다.
+"""제품 13·17·23의 수율 이상·일탈 배치마다 RCA 노트북을 생성한다.
 
-사용: uv run python notebooks/rca_batches/build_notebooks.py  (저장소 루트에서)
+사용: uv run python notebooks/rca_batches/build_notebooks.py [--products 13]  (저장소 루트에서)
+     --products 를 주면 그 제품의 노트북만 새로 씀 (이미 실행된 다른 제품 노트북은 건드리지 않음)
 생성 후 실행: 각 노트북을 jupyter nbconvert --execute 로 실행 (README 참고)
 """
 import sys
@@ -12,7 +13,7 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 from rca_core import find_data_dir, judged  # noqa: E402
 
-PRODUCTS = [17, 23]
+PRODUCTS = [13, 17, 23]
 
 
 def targets():
@@ -135,8 +136,10 @@ ctx.show_overview()
     return nb
 
 
-def write_notebooks():
+def write_notebooks(products=None):
     t = targets()
+    if products:
+        t = t[t.code.isin(products)]
     for b, r in t.iterrows():
         path = HERE / f"RCA_product{int(r.code)}_batch{b}.ipynb"
         nbf.write(notebook(int(b), int(r.code), r.판정), path)
@@ -165,16 +168,18 @@ def write_readme():
     table = "\n".join(["| " + " | ".join(S.columns) + " |", "|" + "---|" * len(S.columns)]
                       + ["| " + " | ".join(str(v) for v in row) + " |" for row in S.values])
     freq = "\n".join(f"| {rc} | {RC[rc][0]} | {RC[rc][1]} | {n} |" for rc, n in sorted(cnt.items(), key=lambda kv: -kv[1]))
-    text = f"""# 배치별 수율 이상·일탈 RCA (제품 17·23)
+    n_by = S.groupby("제품").size()
+    text = f"""# 배치별 수율 이상·일탈 RCA (제품 13·17·23)
 
-제품 17·23에서 수율 이상(경고) 또는 수율 일탈이 판정된 **{len(S)}개 배치**의 RCA 노트북입니다.
+제품 13·17·23에서 수율 이상(경고) 또는 수율 일탈이 판정된 **{len(S)}개 배치**의 RCA 노트북입니다
+(제품 13 {n_by.get(13, 0)}개 · 제품 17 {n_by.get(17, 0)}개 · 제품 23 {n_by.get(23, 0)}개).
 절차는 상세 노트북 `../RCA_Lek_yield_deviation.ipynb`(배치 790)와 같은 7단계이며, 계산은 모두 `rca_core.py` 에 있습니다.
 
 ## 실행
 
 ```bash
 uv sync                                                       # 저장소 루트에서
-uv run python notebooks/rca_batches/build_notebooks.py           # 노트북 생성 (실행 결과 없음)
+uv run python notebooks/rca_batches/build_notebooks.py           # 노트북 생성 (실행 결과 없음, --products 13 으로 제품 지정 가능)
 cd notebooks/rca_batches && uv run jupyter nbconvert --to notebook --execute --inplace RCA_product*.ipynb
 uv run python build_notebooks.py --readme                     # 요약표 갱신
 ```
@@ -197,6 +202,16 @@ uv run python build_notebooks.py --readme                     # 요약표 갱신
 
 {table}
 
+### 제품 13 결과를 읽을 때 주의
+
+- 제품 13은 20개 문제 배치 중 **14개에서 채택된 근본원인이 없습니다**. 방법의 차이가 아니라 손실이 생긴 위치 때문입니다.
+- 문제 배치의 손실 중앙값은 정상 배치보다 약 2.4만 정 많은데, 그중 약 2.2만 정이 **타정기 폐기 기록에 남지 않은 미기록 손실**입니다
+  (문제 배치 손실 추적 가능 비율 중앙값 27%, 제품 17 50% · 제품 23 66%).
+- 타정 수율(`tbl_yield`)도 함께 낮으므로 손실은 타정 단계에서 생기지만, 타정기 카운터 밖에서 버려지고 있습니다(예: 선별·외관 검사·수작업 폐기).
+  14개 가설은 타정기 시계열로 확인하는 가설이라 이 손실을 직접 보지 못합니다.
+- 또 제품 13은 저수율이 **같은 캠페인에서 연속**으로 나오는 경우가 많아(캠페인 136·139·164·176·184), 배치 고유 사건보다
+  캠페인 공통 원인(원료 로트, 금형 상태 등)을 함께 봐야 합니다.
+
 ### 채택된 근본원인 빈도
 
 | RC | 관점 | 근본원인 | 채택 배치 수 |
@@ -215,4 +230,5 @@ if __name__ == "__main__":
     if "--readme" in sys.argv:
         write_readme()          # 실행된 노트북은 건드리지 않음
     else:
-        write_notebooks()
+        prods = [int(sys.argv[sys.argv.index("--products") + 1])] if "--products" in sys.argv else None
+        write_notebooks(prods)
