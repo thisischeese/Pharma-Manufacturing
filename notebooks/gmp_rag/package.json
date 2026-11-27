@@ -1,0 +1,11 @@
+{
+  "name": "gmp-rag",
+  "private": true,
+  "description": "KGMP 고시 PDF → Markdown (kordoc). 결과는 data/knowledge/gmp_kordoc.md",
+  "scripts": {
+    "parse": "kordoc \"../../data/의약품 제조 및 품질관리에 관한 규정(식품의약품안전처고시)(제2024-87호)(20241230).pdf\" -o ../../data/knowledge/gmp_kordoc.md"
+  },
+  "dependencies": {
+    "kordoc": "^4.25.24"
+  }
+}
